@@ -23,7 +23,7 @@ const App = () => {
       setMovie(null);
 
       const res = await axios.get(
-        `http://localhost:5000/api/movie/${id}`
+        `https://imdb-movie-insights.onrender.com/api/movie/${id}`
       );
 
       setMovie(res.data);
