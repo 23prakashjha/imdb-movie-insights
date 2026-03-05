@@ -4,7 +4,7 @@ export const fetchMovieDetails = async (id) => {
   const apiKey = process.env.OMDB_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OMDB_API_KEY not set");
+    throw new Error("Server configuration error: OMDB key missing");
   }
 
   const response = await axios.get("https://www.omdbapi.com/", {
@@ -23,7 +23,7 @@ export const fetchMovieDetails = async (id) => {
 
   return {
     title: data.Title,
-    poster: data.Poster,
+    poster: data.Poster !== "N/A" ? data.Poster : "",
     cast: data.Actors ? data.Actors.split(",") : [],
     year: data.Year,
     rating: data.imdbRating,
