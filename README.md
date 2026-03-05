@@ -1,4 +1,4 @@
-
+https://github.com/23prakashjha/imdb-movie-insights/blob/76a1b029e167fb472d7028487d931db76f85e794/movieid.PNG
 
 
 # 🎬 IMDb AI Insight
