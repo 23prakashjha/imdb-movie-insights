@@ -6,36 +6,57 @@ const router = express.Router();
 
 router.get("/:id", async (req, res) => {
   try {
-    const imdbID = req.params.id.trim();
+    // ✅ Always trim input
+    const imdbID = (req.params.id || "").trim();
 
-    if (!/^tt\d+$/.test(imdbID)) {
+    // ✅ Strict validation
+    if (!/^tt\d{7,8}$/.test(imdbID)) {
       return res.status(400).json({
-        error: "Invalid IMDb ID format"
+        error: "Invalid IMDb ID format (example: tt0111161)"
       });
     }
 
-    const movie = await fetchMovieDetails(imdbID);
-
-    let sentimentSummary = "AI analysis unavailable.";
-
+    // ✅ Fetch movie safely
+    let movie;
     try {
-      const ai = await analyzeReviews(movie.reviews);
-      sentimentSummary = ai.sentimentSummary;
-    } catch (aiError) {
-      console.error("AI ERROR:", aiError.message);
-      sentimentSummary = "AI quota exceeded or unavailable.";
+      movie = await fetchMovieDetails(imdbID);
+    } catch (movieError) {
+      console.error("OMDB ERROR:", movieError.message);
+      return res.status(404).json({
+        error: movieError.message || "Movie not found"
+      });
     }
 
-    res.json({
-      ...movie,
+    // ✅ AI optional (never crash server)
+    let sentimentSummary = "AI analysis unavailable.";
+
+    if (movie.reviews && movie.reviews.length > 0) {
+      try {
+        const ai = await analyzeReviews(movie.reviews);
+        sentimentSummary =
+          ai?.sentimentSummary || "AI analysis unavailable.";
+      } catch (aiError) {
+        console.error("AI ERROR:", aiError.message);
+        sentimentSummary = "AI quota exceeded or unavailable.";
+      }
+    }
+
+    // ✅ Always respond safely
+    return res.json({
+      title: movie.title || "N/A",
+      poster: movie.poster || "",
+      cast: movie.cast || [],
+      year: movie.year || "N/A",
+      rating: movie.rating || "N/A",
+      plot: movie.plot || "No plot available",
       sentimentSummary
     });
 
   } catch (error) {
-    console.error("SERVER ERROR:", error.message);
+    console.error("SERVER ERROR:", error);
 
-    res.status(500).json({
-      error: error.message
+    return res.status(500).json({
+      error: "Internal Server Error"
     });
   }
 });

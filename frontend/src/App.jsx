@@ -12,32 +12,41 @@ const App = () => {
   const [error, setError] = useState("");
 
   const fetchMovie = async () => {
-    if (!id.trim()) {
-      setError("Please enter a valid IMDb ID (e.g., tt0133093)");
-      return;
-    }
+  const cleanId = id.trim(); // ✅ CRITICAL FIX
 
-    try {
-      setLoading(true);
-      setError("");
-      setMovie(null);
+  if (!cleanId) {
+    setError("Please enter a valid IMDb ID (e.g., tt0133093)");
+    return;
+  }
 
-      const res = await axios.get(
-        `https://imdb-movie-insights.onrender.com/api/movie/${id}`
-      );
+  // Strict IMDb validation
+  if (!/^tt\d{7,8}$/.test(cleanId)) {
+    setError("Invalid IMDb ID format (example: tt0111161)");
+    return;
+  }
 
-      setMovie(res.data);
-    } catch (err) {
-      setError("Movie not found or server error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setError("");
+    setMovie(null);
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") fetchMovie();
-  };
+    const res = await axios.get(
+      `https://imdb-movie-insights.onrender.com/api/movie/${cleanId}`
+    );
 
+    setMovie(res.data);
+
+  } catch (err) {
+    console.error("FRONTEND ERROR:", err.response?.data || err.message);
+
+    setError(
+      err.response?.data?.error ||
+      "Movie not found or server error. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen relative overflow-hidden bg-linear-to-br from-black via-gray-900 to-gray-950 text-white px-4 py-12">
 
