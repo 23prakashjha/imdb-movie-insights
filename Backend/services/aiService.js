@@ -1,56 +1,28 @@
-import axios from "axios";
+import OpenAI from "openai";
 
 export const analyzeReviews = async (reviews) => {
+  const apiKey = process.env.OPENAI_API_KEY;
 
-  if (!process.env.OPENAI_API_KEY) {
-    return {
-      sentimentSummary: basicSentiment(reviews)
-    };
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY not set");
   }
 
-  try {
-    const prompt = `
-Summarize sentiment:
-${reviews.join("\n")}
-`;
+  const openai = new OpenAI({ apiKey });
 
-    const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+  const response = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
       {
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-        }
+        role: "user",
+        content: `Analyze the sentiment of these reviews: ${reviews.join(
+          " "
+        )}`
       }
-    );
+    ],
+    max_tokens: 100
+  });
 
-    return {
-      sentimentSummary: response.data.choices[0].message.content
-    };
-
-  } catch (err) {
-    console.log("OpenAI failed — using fallback.");
-    return {
-      sentimentSummary: basicSentiment(reviews)
-    };
-  }
+  return {
+    sentimentSummary: response.choices[0].message.content
+  };
 };
-
-// 🔥 FREE fallback sentiment logic
-function basicSentiment(reviews) {
-  const text = reviews.join(" ").toLowerCase();
-
-  if (text.includes("best") || text.includes("amazing")) {
-    return "Overall Sentiment: Positive. Audience response is highly favorable.";
-  }
-
-  if (text.includes("slow")) {
-    return "Overall Sentiment: Mixed. Some viewers found pacing slow.";
-  }
-
-  return "Overall Sentiment: Mixed.";
-}

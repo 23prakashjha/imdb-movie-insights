@@ -4,7 +4,7 @@ export const fetchMovieDetails = async (id) => {
   const apiKey = process.env.OMDB_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OMDB_API_KEY not set in environment variables");
+    throw new Error("OMDB_API_KEY not set");
   }
 
   const response = await axios.get("https://www.omdbapi.com/", {
