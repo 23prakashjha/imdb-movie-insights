@@ -11,46 +11,54 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ✅ FETCH MOVIE FUNCTION
   const fetchMovie = async () => {
-  const cleanId = id.trim(); // ✅ CRITICAL FIX
+    const cleanId = id.trim();
 
-  if (!cleanId) {
-    setError("Please enter a valid IMDb ID (e.g., tt0133093)");
-    return;
-  }
+    if (!cleanId) {
+      setError("Please enter a valid IMDb ID (e.g., tt0133093)");
+      return;
+    }
 
-  // Strict IMDb validation
-  if (!/^tt\d{7,8}$/.test(cleanId)) {
-    setError("Invalid IMDb ID format (example: tt0111161)");
-    return;
-  }
+    if (!/^tt\d{7,8}$/.test(cleanId)) {
+      setError("Invalid IMDb ID format (example: tt0111161)");
+      return;
+    }
 
-  try {
-    setLoading(true);
-    setError("");
-    setMovie(null);
+    try {
+      setLoading(true);
+      setError("");
+      setMovie(null);
 
-    const res = await axios.get(
-      `https://imdb-movie-insights.onrender.com/api/movie/${cleanId}`
-    );
+      const res = await axios.get(
+        `https://imdb-movie-insights.onrender.com/api/movie/${cleanId}`
+      );
 
-    setMovie(res.data);
+      setMovie(res.data);
 
-  } catch (err) {
-    console.error("FRONTEND ERROR:", err.response?.data || err.message);
+    } catch (err) {
+      console.error("FRONTEND ERROR:", err.response?.data || err.message);
 
-    setError(
-      err.response?.data?.error ||
-      "Movie not found or server error. Please try again."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      setError(
+        err.response?.data?.error ||
+        "Movie not found or server error. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ FIXED: handleKeyPress ADDED
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      fetchMovie();
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-linear-to-br from-black via-gray-900 to-gray-950 text-white px-4 py-12">
 
-      {/* Animated Background Glow */}
+      {/* Background Glow */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/20 blur-[150px] rounded-full animate-pulse" />
       <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-600/20 blur-[150px] rounded-full animate-pulse" />
 
@@ -71,7 +79,7 @@ const App = () => {
           </p>
         </motion.div>
 
-        {/* Search Card */}
+        {/* Search Box */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,7 +92,9 @@ const App = () => {
               type="text"
               placeholder="Enter IMDb ID (e.g., tt0133093)"
               value={id}
-              onChange={(e) => setId(e.target.value)}
+              onChange={(e) =>
+                setId(e.target.value.replace(/\s+/g, "")) // no spaces allowed
+              }
               onKeyDown={handleKeyPress}
               className="flex-1 p-4 rounded-2xl bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             />
@@ -100,12 +110,12 @@ const App = () => {
             >
               {loading ? "Fetching..." : "Fetch Movie"}
             </button>
+
           </div>
         </motion.div>
 
-        {/* Content Section */}
+        {/* Results */}
         <div className="mt-14">
-
           <AnimatePresence mode="wait">
 
             {loading && (
@@ -142,8 +152,8 @@ const App = () => {
             )}
 
           </AnimatePresence>
-
         </div>
+
       </div>
     </div>
   );
