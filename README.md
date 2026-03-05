@@ -1,3 +1,6 @@
+
+
+
 # 🎬 IMDb AI Insight
 
 A full-stack web application that fetches movie details using the OMDb API and generates AI-powered audience sentiment insights.
